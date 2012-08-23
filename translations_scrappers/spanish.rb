@@ -33,8 +33,18 @@ module SpanishTranslationScrapper
       
       mosshaf.puts("----------------------#{sewar_names[sura_no - 1]}----------------------") if verse_no == 1
       
-      unless page.at_css('span').text.gsub(/[^0-9A-Za-z]/, '').start_with?('0')
-        page.css('span').each { |aya| mosshaf.puts(aya.text) }
+      unless page.at_css('span').text.unpack('C*').pack('U*').gsub(/[^0-9]/, '')=~ /^0$/
+        page.css('span').each do |aya| 
+          
+          # Multiple sewars in the same page
+          if aya.text.unpack('C*').pack('U*').gsub(/[^0-9]/, '') =~ /^1$/ && aya.text !=  page.at_css('span').text 
+            sura_no += 1
+            mosshaf.puts("----------------------#{sewar_names[sura_no - 1]}----------------------")
+          end
+           
+          mosshaf.puts(aya.text)
+        end
+        
         verse_no = page.css('span').last.text.match(/(\d+)/).to_s.to_i + 1 # First Aya in the next page
       else
         sura_no += 1
